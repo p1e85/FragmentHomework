@@ -1,0 +1,129 @@
+package com.example.fragmenthomework;
+
+import java.util.ArrayList;
+import java.util.Random;
+
+import com.example.fragmenthomework.ItemClickInterface;
+
+import android.app.Activity;
+import android.app.Fragment;
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
+import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.widget.ArrayAdapter;
+import android.widget.Toast;
+
+public class MainActivity extends Activity implements ItemClickInterface, DisplayFrag.ChangeList {
+	private static final String LAST_POSITION_KEY = "last_position";
+	private static final String FRAG_1_TAG = "frag1";
+	
+	String[] xmen = new String[] {"Jean Grey", "Banshee", "Nightcrawler", "Cyclops", "Wolverine", "Colossus",
+			"Storm", "Profesor X", "Iceman", "Archangel", "Beast", "Nightcrawler", "Longshot", "Psylocke",
+			"Dazzler", "Forge", "Gambit", "Jubilee", "Bishop"};
+	ArrayList<String> xmenList = null;
+	ArrayAdapter<String> adapter;
+	ListFrag listFrag = null;
+	int position;
+	
+	DisplayFrag frag;
+
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_main);
+		
+		//ListFrag listFrag = null;
+		FragmentManager fm = getFragmentManager();
+		Fragment frag1 = fm.findFragmentByTag(FRAG_1_TAG);
+		frag = (DisplayFrag)fm.findFragmentById(R.layout.display_data);
+		
+		if (frag1 == null) {
+			listFrag = new ListFrag();
+		} else {
+			listFrag = (ListFrag) frag1;
+		}
+		
+		initAdapter();
+	
+		fm.beginTransaction().replace(R.id.frag, listFrag, FRAG_1_TAG).addToBackStack(FRAG_1_TAG).commit();	
+	}
+	
+	@Override
+	public void onItemClick(int position) {
+		this.position = position;
+		DisplayFrag displayFrag = new DisplayFrag();
+		displayFrag.setDisplayText(adapter.getItem(position));
+
+		FragmentManager fm = getFragmentManager();
+		FragmentTransaction ft = fm.beginTransaction();
+		ft.replace(R.id.frag, displayFrag);
+		ft.addToBackStack(null);
+		
+		ft.commit();
+		
+	}
+
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		// Inflate the menu; this adds items to the action bar if it is present.
+		getMenuInflater().inflate(R.menu.main, menu);
+		return true;
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		// Handle action bar item clicks here. The action bar will
+		// automatically handle clicks on the Home/Up button, so long
+		// as you specify a parent activity in AndroidManifest.xml.
+		int id = item.getItemId();
+		if (id == R.id.action_add) {
+			Toast.makeText(getApplicationContext(), "Action Add", Toast.LENGTH_SHORT).show();
+			Random rand = new Random();
+			int randomXmen = rand.nextInt(xmen.length);
+			 if (adapter.getCount() < xmen.length) {
+				 adapter.add(xmen[(int) adapter.getItemId(randomXmen)]);
+				 
+				 
+				 //adapter.add(xmen[adapter.getCount()]);
+			 }
+			return true;
+		}
+		if (id == R.id.action_delete) {
+			Toast.makeText(getApplicationContext(), "All Deleted", Toast.LENGTH_SHORT).show();
+			if (xmenList.size() > 0) 
+				xmenList.clear();
+				
+			adapter.notifyDataSetChanged();	
+			return true;
+		}
+		return super.onOptionsItemSelected(item);
+	}
+
+	public void initAdapter() {
+		xmenList = new ArrayList<String>();
+		for (int i = 0; i < 4; i++) {
+			xmenList.add(xmen[i]);
+		}
+		adapter = new ArrayAdapter<String> (MainActivity.this, android.R.layout.simple_list_item_1, xmenList);
+		listFrag.setListAdapter(adapter);
+		listFrag.setItemClickCallback(this);
+	}
+
+	@Override
+	public void saveEditText(String etext) {
+//		ListFrag listFrag = (ListFrag) getFragmentManager().findFragmentById(R.id.frag);
+//		listFrag.getEditText(etext);
+//		
+//		adapter.add(etext);
+		if (listFrag!=null){
+			xmenList.set(position, etext);
+			adapter.notifyDataSetChanged();
+			
+			getFragmentManager().popBackStack();
+		}
+	}
+
+	
+}
